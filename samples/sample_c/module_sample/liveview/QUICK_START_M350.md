@@ -135,6 +135,14 @@ ffmpeg -i m350_payload_stream_20240120_143025.h264 -c:v copy output.mp4
 
 ## 高级用法示例
 
+更多集成示例请参考 `integration_example.c.txt` 文件，该文件包含4种不同的集成方式：
+1. 在main函数中直接调用
+2. 作为独立线程运行
+3. 按需调用特定摄像头
+4. 循环录制视频
+
+> **注意**: `integration_example.c.txt` 是参考代码片段集合，不会被编译。请根据需要复制相应代码到您的项目中。
+
 ### 示例1: 只录制红外摄像头
 
 ```c
@@ -158,13 +166,9 @@ int main(void)
 }
 ```
 
-### 示例2: 循环录制
+### 示例2: 更多集成方式
 
-参考 `integration_example.c` 中的 `ContinuousVideoRecording()` 函数。
-
-### 示例3: 作为独立线程运行
-
-参考 `integration_example.c` 中的 `M350_VideoStreamThread()` 函数。
+详见 `integration_example.c.txt` 文件中的完整示例。
 
 ## 支持的摄像头和源
 

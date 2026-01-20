@@ -16,7 +16,10 @@
 
 - `test_m350_liveview_rk3588.c` - 主要实现代码
 - `test_m350_liveview_rk3588.h` - 头文件定义
+- `integration_example.c.txt` - 集成示例代码片段（参考用，不编译）
 - `README_M350_RK3588.md` - 本说明文档
+
+> **注意**: `integration_example.c.txt` 是参考示例文件，包含多个代码片段展示不同的集成方式。该文件不会被编译，仅供参考。
 
 ## 硬件要求
 
