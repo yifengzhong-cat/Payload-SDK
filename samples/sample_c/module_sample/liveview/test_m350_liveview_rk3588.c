@@ -192,6 +192,26 @@ cleanup:
     return returnCode;
 }
 
+// 通用视频流回调的全局文件指针
+static FILE *s_genericStreamFile = NULL;
+
+// 通用视频流回调函数
+static void M350_GenericStreamCallback(E_DjiLiveViewCameraPosition position,
+                                       const uint8_t *buf, uint32_t bufLen)
+{
+    size_t written;
+    
+    if (s_genericStreamFile == NULL || buf == NULL || bufLen == 0) {
+        return;
+    }
+    
+    written = fwrite(buf, 1, bufLen, s_genericStreamFile);
+    if (written != bufLen) {
+        USER_LOG_ERROR("写入视频数据失败");
+    }
+    fflush(s_genericStreamFile);
+}
+
 /**
  * @brief 获取并保存特定摄像头源的视频流
  * @param position: 摄像头位置
@@ -214,37 +234,24 @@ T_DjiReturnCode DjiTest_M350GetCameraStream(E_DjiLiveViewCameraPosition position
 {
     T_DjiReturnCode returnCode;
     T_DjiOsalHandler *osalHandler = DjiPlatform_GetOsalHandler();
-    FILE *streamFile = NULL;
-    static char s_streamBuffer[256];
 
     USER_LOG_INFO("开始获取摄像头视频流");
     USER_LOG_INFO("  位置: %d, 源: %d", position, source);
     USER_LOG_INFO("  保存文件: %s", filename);
 
-    // 内部回调函数，用于保存视频数据
-    static FILE *s_currentFile = NULL;
-    s_currentFile = fopen(filename, "wb");
-    if (s_currentFile == NULL) {
+    // 打开文件
+    s_genericStreamFile = fopen(filename, "wb");
+    if (s_genericStreamFile == NULL) {
         USER_LOG_ERROR("无法创建文件: %s", filename);
         return DJI_ERROR_SYSTEM_MODULE_CODE_SYSTEM_ERROR;
     }
 
-    // 定义回调函数
-    void StreamCallback(E_DjiLiveViewCameraPosition pos, const uint8_t *buf, uint32_t len) {
-        if (s_currentFile && buf && len > 0) {
-            size_t written = fwrite(buf, 1, len, s_currentFile);
-            if (written != len) {
-                USER_LOG_ERROR("写入文件失败");
-            }
-            fflush(s_currentFile);
-        }
-    }
-
     // 启动视频流
-    returnCode = DjiLiveview_StartH264Stream(position, source, StreamCallback);
+    returnCode = DjiLiveview_StartH264Stream(position, source, M350_GenericStreamCallback);
     if (returnCode != DJI_ERROR_SYSTEM_MODULE_CODE_SUCCESS) {
         USER_LOG_ERROR("启动视频流失败, 错误代码: 0x%08X", returnCode);
-        fclose(s_currentFile);
+        fclose(s_genericStreamFile);
+        s_genericStreamFile = NULL;
         return returnCode;
     }
 
@@ -260,9 +267,10 @@ T_DjiReturnCode DjiTest_M350GetCameraStream(E_DjiLiveViewCameraPosition position
         USER_LOG_ERROR("停止视频流失败, 错误代码: 0x%08X", returnCode);
     }
 
-    if (s_currentFile) {
-        fclose(s_currentFile);
-        s_currentFile = NULL;
+    // 关闭文件
+    if (s_genericStreamFile) {
+        fclose(s_genericStreamFile);
+        s_genericStreamFile = NULL;
     }
 
     USER_LOG_INFO("视频流录制完成: %s", filename);
