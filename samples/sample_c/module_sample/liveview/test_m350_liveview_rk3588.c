@@ -15,9 +15,9 @@
 #include "dji_logger.h"
 #include "dji_platform.h"
 #include "dji_aircraft_info.h"
-#include "widget_interaction_test/test_widget_interaction.h"
 #include <time.h>
 #include <stdio.h>
+#include <string.h>
 
 /* Private constants ---------------------------------------------------------*/
 // 视频流保存时长（秒）
